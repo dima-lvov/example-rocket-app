@@ -1,8 +1,11 @@
 #[macro_use] extern crate rocket;
+#[macro_use] extern crate rocket_contrib;
+
+use rocket_contrib::json::JsonValue;
 
 #[get("/")]
-fn hello() -> &'static str {
-    "Hello, world!\n"
+fn hello() -> JsonValue {
+    json!("Hello, world!")
 }
 
 #[rocket::main]
