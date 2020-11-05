@@ -25,8 +25,13 @@ async fn get_rustaceans(_auth: BasicAuth, conn: DbConn) -> JsonValue {
     }).await
 }
 #[get("/rustaceans/<id>")]
-fn view_rustacean(id: i32, _auth: BasicAuth) -> JsonValue {
-    json!({"id": id, "name": "John Doe", "email": "john@doe.com"})
+async fn view_rustacean(id: i32, _auth: BasicAuth, conn: DbConn) -> JsonValue {
+    conn.run(move |c| {
+        let rustacean = rustaceans::table.find(id)
+            .get_result::<Rustacean>(c)
+            .expect("Error loading rustacean from DB");
+        json!(rustacean)
+    }).await
 }
 #[post("/rustaceans", format = "json", data="<new_rustacean>")]
 async fn create_rustacean(_auth: BasicAuth, conn: DbConn, new_rustacean: Json<NewRustacean>) -> JsonValue {
@@ -38,13 +43,27 @@ async fn create_rustacean(_auth: BasicAuth, conn: DbConn, new_rustacean: Json<Ne
         json!(result)
     }).await
 }
-#[put("/rustaceans/<id>", format = "json")]
-fn update_rustacean(id: i32, _auth: BasicAuth) -> JsonValue {
-    json!({"id": id, "name": "John Doe", "email": "john@doe.com"})
+#[put("/rustaceans/<id>", format = "json", data="<rustacean>")]
+async fn update_rustacean(id: i32, _auth: BasicAuth, conn: DbConn, rustacean: Json<Rustacean>) -> JsonValue {
+    conn.run(move |c| {
+        let result = diesel::update(rustaceans::table.find(id))
+            .set((
+                rustaceans::name.eq(rustacean.name.to_owned()),
+                rustaceans::email.eq(rustacean.email.to_owned()),
+            ))
+            .execute(c)
+            .expect("Error updating rustaceans to DB");
+        json!(result)
+    }).await
 }
-#[delete("/rustaceans/<_id>")]
-fn delete_rustacean(_id: i32, _auth: BasicAuth) -> status::NoContent {
-    status::NoContent
+#[delete("/rustaceans/<id>")]
+async fn delete_rustacean(id: i32, _auth: BasicAuth, conn: DbConn) -> status::NoContent {
+    conn.run(move |c| {
+        diesel::delete(rustaceans::table.find(id))
+            .execute(c)
+            .expect("Error deleting rustacean from DB");
+        status::NoContent
+    }).await
 }
 
 #[catch(404)]
