@@ -11,6 +11,7 @@ use models::*;
 use schema::*;
 use auth::BasicAuth;
 use rocket::response::status;
+use rocket_contrib::json::Json;
 use rocket_contrib::json::JsonValue;
 
 #[database("sqlite_path")]
@@ -27,9 +28,15 @@ async fn get_rustaceans(_auth: BasicAuth, conn: DbConn) -> JsonValue {
 fn view_rustacean(id: i32, _auth: BasicAuth) -> JsonValue {
     json!({"id": id, "name": "John Doe", "email": "john@doe.com"})
 }
-#[post("/rustaceans", format = "json")]
-fn create_rustacean(_auth: BasicAuth) -> JsonValue {
-    json!({"id": 3, "name": "John Doe", "email": "john@doe.com"})
+#[post("/rustaceans", format = "json", data="<new_rustacean>")]
+async fn create_rustacean(_auth: BasicAuth, conn: DbConn, new_rustacean: Json<NewRustacean>) -> JsonValue {
+    conn.run(|c| {
+        let result = diesel::insert_into(rustaceans::table)
+            .values(new_rustacean.into_inner())
+            .execute(c)
+            .expect("Error adding rustaceans to DB");
+        json!(result)
+    }).await
 }
 #[put("/rustaceans/<id>", format = "json")]
 fn update_rustacean(id: i32, _auth: BasicAuth) -> JsonValue {
