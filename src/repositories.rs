@@ -1,7 +1,7 @@
-use diesel::result::QueryResult;
 use diesel::prelude::*;
-use super::models::*;
-use super::schema::*;
+
+use crate::models::Rustacean;
+use crate::schema::rustaceans;
 
 pub struct RustaceanRepository;
 
@@ -10,39 +10,33 @@ impl RustaceanRepository {
         rustaceans::table.limit(100).load::<Rustacean>(c)
     }
 
-    pub fn find(c: &SqliteConnection, id: i32) -> QueryResult<Rustacean> {
+    pub fn find_by_id(c: &SqliteConnection, id: i32) -> QueryResult<Rustacean> {
         rustaceans::table.find(id).get_result::<Rustacean>(c)
     }
 
-    pub fn create(c: &SqliteConnection, new_rustacean: NewRustacean) -> QueryResult<Rustacean> {
-        diesel::insert_into(rustaceans::table)
-            .values(new_rustacean)
-            .execute(c)?;
-
-        let last_id = Self::last_id(c)?;
-
-        Self::find(c, last_id)
-    }
-
-    pub fn save(c: &SqliteConnection, rustacean: Rustacean) -> QueryResult<Rustacean> {
-        diesel::update(rustaceans::table.find(rustacean.id))
-            .set((
-                rustaceans::name.eq(rustacean.name.to_owned()),
-                rustaceans::email.eq(rustacean.email.to_owned()),
-            ))
-            .execute(c)?;
-
-        Self::find(c, rustacean.id)
-    }
-
-    pub fn delete(c: &SqliteConnection, id: i32) -> QueryResult<usize>  {
+    pub fn delete_rustacean(c: &SqliteConnection, id: i32) -> QueryResult<usize> {
         diesel::delete(rustaceans::table.find(id)).execute(c)
     }
 
-    fn last_id(c: &SqliteConnection) -> QueryResult<i32> {
-        rustaceans::table
-            .select(rustaceans::id)
-            .order(rustaceans::id.desc())
-            .first(c)
+    pub fn create_rustacean(c: &SqliteConnection, new_rustacean: Rustacean) -> QueryResult<Rustacean> {
+        match diesel::insert_into(rustaceans::table)
+            // .values(new_rustacean)
+            .values((
+                rustaceans::name.eq(new_rustacean.name.to_owned()),
+                rustaceans::email.eq(new_rustacean.email.to_owned()),
+            ))
+            .execute(c) {
+            Ok(_) => rustaceans::table.order(rustaceans::id.desc()).limit(1).get_result::<Rustacean>(c),
+            Err(e) => Err(e)
+        }
+    }
+
+    pub fn update_rustacean(c: &SqliteConnection, id: i32, rustacean: Rustacean) -> QueryResult<Rustacean> {
+        diesel::update(rustaceans::table.find(id))
+            .set((rustaceans::email.eq(rustacean.email.to_owned()),
+                  rustaceans::name.eq(rustacean.name.to_owned())))
+            .execute(c)?;
+        Self::find_by_id(c, id)
     }
 }
+
