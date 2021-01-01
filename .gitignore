@@ -1,3 +1,4 @@
 /target
 database.sqlite
+Cargo.lock
 .idea
