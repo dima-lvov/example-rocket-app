@@ -1,0 +1,49 @@
+
+############ Request exaples #################
+
+GET http://127.0.0.1:8000/rustaceans/3
+Accept: application/json
+Authorization: Basic YWRtaW46YWRtaW4=
+
+
+###
+GET http://127.0.0.1:8000/rustaceans
+Accept: application/json
+Authorization: Basic YWRtaW46YWRtaW4=
+
+
+###
+DELETE http://127.0.0.1:8000/rustaceans/2
+Accept: application/json
+Authorization: Basic YWRtaW46YWRtaW4=
+
+
+
+###
+POST http://127.0.0.1:8000/rustaceans
+Accept: application/json
+Content-Type: application/json
+Authorization: Basic YWRtaW46YWRtaW4=
+
+{
+  "name": "John4",
+  "email": "john4@loh.tupyi"
+}
+
+
+###
+PUT http://127.0.0.1:8000/rustaceans/5
+Accept: application/json
+Content-Type: application/json
+Authorization: Basic YWRtaW46YWRtaW4=
+
+{
+  "email": "john5@loh.tupyi",
+  "name": "John5"
+}
+
+
+
+
+
+
