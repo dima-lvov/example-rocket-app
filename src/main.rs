@@ -48,10 +48,10 @@ async fn view_rustacean(id: i32, _auth: BasicAuth, conn: DbConn) -> Result<JsonV
 
 #[post("/rustaceans", format = "json", data = "<new_rustacean>")]
 async fn create_rustacean(_auth: BasicAuth, conn: DbConn, new_rustacean: Json<Rustacean>)
-                          -> Result<JsonValue, status::Custom<JsonValue>> {
+                          -> Result<status::Custom<JsonValue>, status::Custom<JsonValue>> {
     conn.run(move |c| {
         RustaceanRepository::create_rustacean(&c, new_rustacean.into_inner())
-            .map(|rustacean| json!(rustacean))
+            .map(|rustacean| status::Custom(Status::Created, json!(rustacean)))
             .map_err(|e| status::Custom(Status::InternalServerError, json!(e.to_string())))
     }).await
 }
