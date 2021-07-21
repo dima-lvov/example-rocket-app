@@ -66,7 +66,6 @@ async fn update_rustacean(id: i32, rustacean: Json<Rustacean>, conn: DbConn, _au
     }).await
 }
 
-
 #[delete("/rustaceans/<id>")]
 async fn delete_rustacean(id: i32, conn: DbConn, _auth: BasicAuth) -> Result<JsonValue, status::Custom<JsonValue>> {
     conn.run(move |c| {
